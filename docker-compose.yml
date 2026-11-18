@@ -1,0 +1,83 @@
+name: presence-attendance-saas
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      FACE_MODEL_DIR: /app/face_models
+      BACKUP_DIRECTORY: /app/backups
+    volumes:
+      - ./face_models:/app/face_models:ro
+      - ./backups:/app/backups
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 25s
+  admin:
+    build:
+      context: .
+      dockerfile: admin/Dockerfile
+    restart: unless-stopped
+    ports: ["127.0.0.1:8080:80"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [internal]
+  company:
+    build:
+      context: .
+      dockerfile: company/Dockerfile
+    restart: unless-stopped
+    ports: ["127.0.0.1:8082:80"]
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    restart: unless-stopped
+    ports: ["127.0.0.1:8081:80"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [internal]
+  backup-runner:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      BACKUP_DIRECTORY: /app/backups
+    volumes:
+      - ./backups:/app/backups
+    command: ["python", "-m", "scripts.backup", "--loop"]
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [internal]
+networks:
+  internal:

@@ -1,0 +1,7 @@
+/* Multi-portal refinements — share the original SaaS layout and tokens. */
+.portal-quicklinks{display:flex;gap:5px;flex-wrap:wrap;padding:3px 0}
+.portal-quicklinks a{color:var(--muted);text-decoration:none;font-size:10px;padding:7px 9px;border:1px solid var(--border);border-radius:8px}
+.portal-quicklinks a[aria-current=page]{color:var(--accent);border-color:var(--accent);background:rgba(var(--accent-rgb),.08)}
+.status-row{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:14px;border-bottom:1px solid var(--border)}.status-row:last-child{border:0}
+.modal{max-height:90dvh;overflow:auto}.row-actions{flex-wrap:wrap}.section-head .btn{white-space:nowrap}
+@media(max-width:760px){.portal-quicklinks{justify-content:center}.row-actions{gap:5px}}
